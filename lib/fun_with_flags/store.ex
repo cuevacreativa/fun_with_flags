@@ -64,8 +64,14 @@ defmodule FunWithFlags.Store do
   end
 
 
-  defdelegate all_flags(), to: persistence_adapter()
-  defdelegate all_flag_names(), to: persistence_adapter()
+  def all_flags do
+    persistence_adapter().all_flags()
+  end
+
+
+  def all_flag_names do
+    persistence_adapter().all_flag_names()
+  end
 
 
   defp cache_persistence_result(result) do
