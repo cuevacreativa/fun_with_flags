@@ -9,7 +9,7 @@ defmodule FunWithFlags.Store.Persistent.Ecto do
   alias FunWithFlags.Store.Persistent.Ecto.Record
   alias FunWithFlags.Store.Serializer.Ecto, as: Serializer
 
-  import FunWithFlags.Config, only: [ecto_repo: 0]
+  import FunWithFlags.Config, only: [ecto_repo: 0, ecto_repo_options: 0]
   import Ecto.Query
 
   require Logger
@@ -28,7 +28,7 @@ defmodule FunWithFlags.Store.Persistent.Ecto do
     name_string = to_string(flag_name)
     query = from(r in Record, where: r.flag_name == ^name_string)
     try do
-      results = ecto_repo().all(query)
+      results = ecto_repo().all(query, ecto_repo_options())
       flag = deserialize(flag_name, results)
       {:ok, flag}
     rescue
@@ -56,7 +56,7 @@ defmodule FunWithFlags.Store.Persistent.Ecto do
     end
 
     out = transaction_fn.(repo, fn() ->
-      case repo.one(find_one_q) do
+      case repo.one(find_one_q, ecto_repo_options()) do
         record = %Record{} ->
           changeset = Record.update_target(record, gate)
           do_update(repo, flag_name, changeset)
@@ -146,7 +146,7 @@ defmodule FunWithFlags.Store.Persistent.Ecto do
     )
 
     try do
-      {_count, _} = ecto_repo().delete_all(query)
+      {_count, _} = ecto_repo().delete_all(query, ecto_repo_options())
       {:ok, flag} = get(flag_name)
       {:ok, flag}
     rescue
@@ -173,7 +173,7 @@ defmodule FunWithFlags.Store.Persistent.Ecto do
     )
 
     try do
-      {_count, _} = ecto_repo().delete_all(query)
+      {_count, _} = ecto_repo().delete_all(query, ecto_repo_options())
       {:ok, flag} = get(flag_name)
       {:ok, flag}
     rescue
@@ -198,7 +198,7 @@ defmodule FunWithFlags.Store.Persistent.Ecto do
     )
 
     try do
-      {_count, _} = ecto_repo().delete_all(query)
+      {_count, _} = ecto_repo().delete_all(query, ecto_repo_options())
       {:ok, flag} = get(flag_name)
       {:ok, flag}
     rescue
@@ -211,7 +211,7 @@ defmodule FunWithFlags.Store.Persistent.Ecto do
   def all_flags do
     flags =
       Record
-      |> ecto_repo().all()
+      |> ecto_repo().all(ecto_repo_options())
       |> Enum.group_by(&(&1.flag_name))
       |> Enum.map(fn ({name, records}) -> deserialize(name, records) end)
     {:ok, flags}
@@ -221,7 +221,7 @@ defmodule FunWithFlags.Store.Persistent.Ecto do
   @impl true
   def all_flag_names do
     query = from(r in Record, select: r.flag_name, distinct: true)
-    strings = ecto_repo().all(query)
+    strings = ecto_repo().all(query, ecto_repo_options())
     atoms = Enum.map(strings, &String.to_atom(&1))
     {:ok, atoms}
   end
@@ -281,14 +281,14 @@ defmodule FunWithFlags.Store.Persistent.Ecto do
 
   defp do_insert(repo, flag_name, changeset, options \\ []) do
     changeset
-    |> repo.insert(options)
+    |> repo.insert(options, ecto_repo_options())
     |> handle_write(flag_name)
   end
 
 
   defp do_update(repo, flag_name, changeset, options \\ []) do
     changeset
-    |> repo.update(options)
+    |> repo.update(options, ecto_repo_options())
     |> handle_write(flag_name)
   end
 

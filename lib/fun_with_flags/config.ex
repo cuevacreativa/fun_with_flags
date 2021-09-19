@@ -87,6 +87,11 @@ defmodule FunWithFlags.Config do
   end
 
 
+  def ecto_repo_options do
+    Keyword.get(persistence_config(), :repo_options, [])
+  end
+
+
   def persist_in_ecto? do
     persistence_adapter() == FunWithFlags.Store.Persistent.Ecto
   end
